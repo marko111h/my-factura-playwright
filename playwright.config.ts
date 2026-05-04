@@ -29,46 +29,36 @@ export default defineConfig({
     // baseURL: 'http://localhost:3000',
 
     /* Collect trace when retrying the failed test. See https://playwright.dev/docs/trace-viewer */
+    baseURL: process.env.CC_BASE_URL || 'https://dev-cc.dev.gerniks.net',
     trace: 'on-first-retry',
   },
 
   /* Configure projects for major browsers */
-  projects: [
+ projects: [
+    // 1. Setup project — uloguje se i sprema auth state
+    {
+      name: 'setup',
+      testMatch: /.*\.setup\.ts/,
+    },
+    
+    // 2. Glavni test projekat — koristi sačuvan auth state
     {
       name: 'chromium',
+      use: { 
+        ...devices['Desktop Chrome'],
+        storageState: 'playwright/.auth/user.json',
+      },
+      dependencies: ['setup'],
+      testIgnore: [/.*\.setup\.ts/, /login\.spec\.ts/], 
+    },
+    
+    // 3. Login testovi — bez auth state-a (jer testira login)
+    {
+      name: 'chromium-no-auth',
       use: { ...devices['Desktop Chrome'] },
+      testMatch: /login\.spec\.ts/,
     },
-
-    {
-      name: 'firefox',
-      use: { ...devices['Desktop Firefox'] },
-    },
-
-    {
-      name: 'webkit',
-      use: { ...devices['Desktop Safari'] },
-    },
-
-    /* Test against mobile viewports. */
-    // {
-    //   name: 'Mobile Chrome',
-    //   use: { ...devices['Pixel 5'] },
-    // },
-    // {
-    //   name: 'Mobile Safari',
-    //   use: { ...devices['iPhone 12'] },
-    // },
-
-    /* Test against branded browsers. */
-    // {
-    //   name: 'Microsoft Edge',
-    //   use: { ...devices['Desktop Edge'], channel: 'msedge' },
-    // },
-    // {
-    //   name: 'Google Chrome',
-    //   use: { ...devices['Desktop Chrome'], channel: 'chrome' },
-    // },
-  ],
+],
 
   /* Run your local dev server before starting the tests */
   // webServer: {
