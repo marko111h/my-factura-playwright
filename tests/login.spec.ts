@@ -1,29 +1,37 @@
 import { test, expect } from '@playwright/test';
+import { LoginPage } from './pages/LoginPage';
 
-test('successful login to My-Factura', async ({ page }) => {
-  await page.goto('/#/auth/login');
+test.describe('Login functionality', () => {
+  test('successful login redirects to dashboard', async ({ page }) => {
+    const loginPage = new LoginPage(page);
+    
+    await loginPage.goto();
+    await loginPage.expectLoginFormVisible();
+    
+    await loginPage.loginAndWaitForDashboard(
+      process.env.CC_USERNAME!,
+      process.env.CC_PASSWORD!
+    );
+    
+    // Verifikuj da smo stigli na dashboard
+    await expect(page).toHaveURL(/.*\/admin\/.*\/dashboard/);
+  });
 
-  await page.getByPlaceholder('Username*').fill(process.env.CC_USERNAME!);
-  await page.getByPlaceholder('Password*').fill(process.env.CC_PASSWORD!);
-  await page.getByRole('button', { name: 'Log in' }).click();
+  test('login fails with wrong password', async ({ page }) => {
+    const loginPage = new LoginPage(page);
+    
+    await loginPage.goto();
+    await loginPage.login(process.env.CC_USERNAME!, 'wrong_password_123');
+    
+    // Trebao bi ostati na login stranici
+    await page.waitForTimeout(2000);
+    await loginPage.expectStillOnLoginPage();
+  });
 
-  // Sačekaj da se URL promijeni na dashboard (eksplicitno čekanje, bolje od regex assertion)
-  await page.waitForURL(/.*\/admin\/.*\/dashboard/, { timeout: 15000 });
-  
-  // Provjera da je dashboard učitan
-  await expect(page.getByText('Consumer 360')).toBeVisible();
-});
-
-test('login fails with wrong password', async ({ page }) => {
-  await page.goto('/#/auth/login');
-
-  await page.getByPlaceholder('Username*').fill(process.env.CC_USERNAME!);
-  await page.getByPlaceholder('Password*').fill('wrong_password_123');
-  await page.getByRole('button', { name: 'Log in' }).click();
-
-  // Trebao bi ostati na login stranici - sačekaj 2 sekunde da vidi šta se desi
-  await page.waitForTimeout(2000);
-  
-  // URL sadrži /auth/login
-  await expect(page).toHaveURL(/.*auth\/login/);
+  test('login form is visible on page load', async ({ page }) => {
+    const loginPage = new LoginPage(page);
+    
+    await loginPage.goto();
+    await loginPage.expectLoginFormVisible();
+  });
 });

@@ -1,23 +1,23 @@
-import { test as setup, expect } from '@playwright/test';
+import { test as setup } from '@playwright/test';
 import path from 'path';
+import { LoginPage } from './pages/LoginPage';
+import { DashboardPage } from './pages/DashboardPage';
 
 const authFile = path.join(__dirname, '../playwright/.auth/user.json');
 
 setup('authenticate', async ({ page }) => {
-  // Idi na login
-  await page.goto('https://dev-cc.dev.gerniks.net/#/auth/login');
+  const loginPage = new LoginPage(page);
+  const dashboardPage = new DashboardPage(page);
 
-  // Login
-  await page.getByPlaceholder('Username*').fill(process.env.CC_USERNAME!);
-  await page.getByPlaceholder('Password*').fill(process.env.CC_PASSWORD!);
-  await page.getByRole('button', { name: 'Log in' }).click();
-
-  // Sačekaj da se login završi (URL se promijeni na dashboard)
-  await page.waitForURL(/.*\/admin\/.*\/dashboard/);
+  await loginPage.goto();
+  await loginPage.loginAndWaitForDashboard(
+    process.env.CC_USERNAME!,
+    process.env.CC_PASSWORD!
+  );
   
-  // Bonus provjera da je dashboard stvarno učitan
-  await expect(page.getByText('Consumer 360')).toBeVisible();
+  // Provjera da je dashboard stvarno učitan prije nego što sačuvamo state
+  await dashboardPage.expectDashboardLoaded();
 
-  // Sačuvaj auth state (cookies + localStorage)
+  // Sačuvaj auth state
   await page.context().storageState({ path: authFile });
 });
