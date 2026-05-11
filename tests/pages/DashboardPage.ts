@@ -35,9 +35,10 @@ export class DashboardPage {
     this.languageSelector = page.locator('select').first();
   }
 
-  async goto(entityId: number = 1) {
+  async goto() {
+    const entityId = process.env.CC_ENTITY_ID || '40261';
     await this.page.goto(`/#/admin/entity/${entityId}/dashboard`);
-  }
+}
 
   async clickTransactions() {
     await this.transactionsMenu.click();

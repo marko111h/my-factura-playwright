@@ -9,15 +9,23 @@ setup('authenticate', async ({ page }) => {
   const loginPage = new LoginPage(page);
   const dashboardPage = new DashboardPage(page);
 
+  // 1. Login
   await loginPage.goto();
   await loginPage.loginAndWaitForDashboard(
     process.env.CC_USERNAME!,
     process.env.CC_PASSWORD!
   );
+
+  // 2. Switch na MarkoGym1 entity
+  await page.locator('#entityToggleBtn').click();
+  await page.getByText('MarkoGym1').dblclick();
   
-  // Provjera da je dashboard stvarno učitan prije nego što sačuvamo state
+  // 3. Sačekaj da se entity promijeni (URL treba da postane /entity/40261/)
+  await page.waitForURL(/.*\/entity\/40261\/.*/);
+  
+  // 4. Provjeri dashboard
   await dashboardPage.expectDashboardLoaded();
 
-  // Sačuvaj auth state
+  // 5. Sačuvaj auth state (sa entity 40261 kontekstom)
   await page.context().storageState({ path: authFile });
 });
