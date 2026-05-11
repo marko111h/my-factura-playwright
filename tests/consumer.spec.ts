@@ -35,7 +35,7 @@ test.describe('Consumer management', () => {
     const consumerData = {
       firstName,
       lastName,
-      email: faker.internet.email({ firstName, lastName }).toLowerCase(),
+      email: faker.internet.email({ firstName, lastName, provider: 'example.com' }).toLowerCase(),
       accountOwner: `${firstName} ${lastName}`,
       bankName: faker.company.name(),
       iban: 'DE89370400440532013000', // Validan test IBAN
@@ -60,7 +60,7 @@ test.describe('Consumer management', () => {
       return {
         firstName,
         lastName,
-        email: faker.internet.email({ firstName, lastName }).toLowerCase(),
+        email: faker.internet.email({ firstName, lastName, provider: 'example.com' }).toLowerCase(),
       };
     });
 
