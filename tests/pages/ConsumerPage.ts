@@ -31,8 +31,14 @@ export class ConsumerPage {
   readonly createButton: Locator;
   readonly cancelButton: Locator;
   
+  
   // Pretraga
   readonly searchInput: Locator;
+
+  readonly filtersButton: Locator;
+  readonly filterButton: Locator;
+  readonly clearFiltersButton: Locator;
+
 
   constructor(page: Page) {
     this.page = page;
@@ -57,8 +63,14 @@ export class ConsumerPage {
     this.createButton = page.getByRole('button', { name: 'Create' });
     this.cancelButton = page.getByRole('button', { name: 'Cancel' });
         
-    // Pretraga
-    this.searchInput = page.getByRole('textbox', { name: /search/i });
+   
+        // Filters panel dugme (otvara panel):
+    this.filtersButton = page.getByRole('button', { name: 'Filters', exact: true });
+
+    // Filter submit dugme (primjenjuje filter):
+    this.filterButton = page.getByRole('button', { name: 'Filter', exact: true });
+    this.searchInput = page.getByRole('textbox', { name: 'Search' });
+    this.clearFiltersButton = page.getByText('Clear all filters');
   }
 
   // Idi na Consumer Cockpit
@@ -85,31 +97,34 @@ async goto() {
     // Sačekaj da se modal otvori
     await expect(this.firstNameInput).toBeVisible({ timeout: 5000 });
   }
-
-  // Popuni i submit formu
-  async fillAndSubmitForm(data: ConsumerData) {
-    // Odaberi "Person" tip
-    await this.personRadio.check();
-    
-    // Obavezna polja
-    await this.firstNameInput.fill(data.firstName);
-    await this.lastNameInput.fill(data.lastName);
-    await this.emailInput.fill(data.email);
-    
-    // Opcionalna polja
-    if (data.accountOwner) {
-      await this.accountOwnerInput.fill(data.accountOwner);
-    }
-    if (data.bankName) {
-      await this.bankNameInput.fill(data.bankName);
-    }
-    if (data.iban) {
-      await this.ibanInput.fill(data.iban);
-    }
-    
-    // Submit
-    await this.createButton.click();
+async fillAndSubmitForm(data: ConsumerData) {
+  await this.personRadio.check();
+  
+  // Obavezna polja
+  await this.firstNameInput.fill(data.firstName);
+  await this.lastNameInput.fill(data.lastName);
+  await this.emailInput.fill(data.email);
+  
+  // Account owner — treba klik na label
+  if (data.accountOwner) {
+    await this.page.getByText('Account owner').click();
+    await this.accountOwnerInput.fill(data.accountOwner);
   }
+  
+  // Bank name
+  if (data.bankName) {
+    await this.bankNameInput.click();
+    await this.bankNameInput.fill(data.bankName);
+  }
+  
+  // IBAN — treba klik na container
+  if (data.iban) {
+    await this.page.locator('div:nth-child(17) > mat-form-field:nth-child(3) > .mat-mdc-text-field-wrapper > .mat-mdc-form-field-flex > .mat-mdc-form-field-infix').click();
+    await this.ibanInput.fill(data.iban);
+  }
+  
+  await this.createButton.click();
+}
 
   // Kompletan flow: otvori formu + popuni + submit
   async createConsumer(data: ConsumerData) {
@@ -123,4 +138,32 @@ async goto() {
       this.page.getByText(`${firstName} ${lastName}`)
     ).toBeVisible({ timeout: 10000 });
   }
+
+async openFilters() {
+  await this.filtersButton.click();
+  await expect(this.searchInput).toBeVisible({ timeout: 3000 });
+}
+
+async searchConsumer(searchTerm: string) {
+  await this.openFilters();
+  await this.searchInput.fill(searchTerm);
+  await this.filterButton.click();
+  // Sačekaj da se rezultati učitaju
+  await this.page.waitForLoadState('networkidle');
+}
+
+async expectConsumerInResults(firstName: string, lastName: string) {
+  await expect(
+    this.page.getByRole('cell', { name: `${firstName} ${lastName}` })
+  ).toBeVisible({ timeout: 10000 });
+}
+
+
+
+async clickConsumerInResults(firstName: string, lastName: string) {
+  await this.page.getByRole('cell', { name: `${firstName} ${lastName}` }).click();
+}
+
+
+
 }
