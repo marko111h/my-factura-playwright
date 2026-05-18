@@ -140,8 +140,12 @@ async fillAndSubmitForm(data: ConsumerData) {
   }
 
 async openFilters() {
-  await this.filtersButton.click();
-  await expect(this.searchInput).toBeVisible({ timeout: 3000 });
+  // Provjeri da li je filter panel već otvoren
+  const isVisible = await this.searchInput.isVisible();
+  if (!isVisible) {
+    await this.filtersButton.click();
+    await expect(this.searchInput).toBeVisible({ timeout: 3000 });
+  }
 }
 
 async searchConsumer(searchTerm: string) {

@@ -4,7 +4,7 @@ import { BlacklistPage } from './pages/BlacklistPage';
 import { generateConsumerData } from './helpers/testData';
 
 test.describe('Blacklist functionality', () => {
-  test.setTimeout(90000); // 90 sekundi
+  //test.setTimeout(90000); // 90 sekundi
   test('can open blacklist modal from consumer profile', async ({ page }) => {
     const consumerPage = new ConsumerPage(page);
     const blacklistPage = new BlacklistPage(page);
