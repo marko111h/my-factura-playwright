@@ -107,6 +107,25 @@ test.describe('Transaction management', () => {
   await transactionPage.addButton.click();
   await expect(transactionPage.amountInput).not.toBeVisible({ timeout: 5000 });
 
+    // Verifikacija — provjeri u Transactions Overview
+  const entityId = process.env.CC_ENTITY_ID || '40261';
+  await page.goto(`/#/entity/${entityId}/transactions/in`);
+  await page.waitForLoadState('networkidle');
+
+  await page.getByRole('button', { name: 'Filters' }).click();
+  await page.getByRole('textbox', { name: 'Search' }).fill(`${consumer.firstName} ${consumer.lastName}`);
+  await page.getByRole('button', { name: 'Filter', exact: true }).click();
+  await page.waitForLoadState('networkidle');
+
+  // Provjeri konzumera u listi
+  await expect(
+    page.getByRole('cell', { name: `${consumer.firstName} ${consumer.lastName}` }).first()
+  ).toBeVisible({ timeout: 10000 });
+
+  // Provjeri opis
+  await expect(page.getByText('Test - Send to reminder only')).toBeVisible();
+
+
   console.log(`✓ Transaction (Send to reminder only) for: ${consumer.firstName} ${consumer.lastName}`);
 });
 
@@ -130,6 +149,23 @@ test('can add transaction as Draft', async ({ page }) => {
   await page.getByRole('radio', { name: 'Draft' }).check();
   await transactionPage.addButton.click();
   await expect(transactionPage.amountInput).not.toBeVisible({ timeout: 5000 });
+
+  // Verifikacija — provjeri u Transactions Overview
+  const entityId = process.env.CC_ENTITY_ID || '40261';
+  await page.goto(`/#/entity/${entityId}/transactions/in`);
+  await page.waitForLoadState('networkidle');
+
+  await page.getByRole('button', { name: 'Filters' }).click();
+  await page.getByRole('textbox', { name: 'Search' }).fill(`${consumer.firstName} ${consumer.lastName}`);
+  await page.getByRole('button', { name: 'Filter', exact: true }).click();
+  await page.waitForLoadState('networkidle');
+
+  // Provjeri konzumera i opis
+  await expect(
+    page.getByRole('cell', { name: `${consumer.firstName} ${consumer.lastName}` }).first()
+  ).toBeVisible({ timeout: 10000 });
+
+  await expect(page.getByText('Test - Draft')).toBeVisible();
 
   console.log(`✓ Transaction (Draft) for: ${consumer.firstName} ${consumer.lastName}`);
 });
