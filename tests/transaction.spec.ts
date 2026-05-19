@@ -33,6 +33,23 @@ test.describe('Transaction management', () => {
       transactionData
     );
 
+    // Verifikacija — provjeri u Transactions Overview
+    const entityId = process.env.CC_ENTITY_ID || '40261';
+    await page.goto(`/#/entity/${entityId}/transactions/in`);
+    await page.waitForLoadState('networkidle');
+
+    // Pretraži po imenu konzumera
+    await page.getByRole('button', { name: 'Filters' }).click();
+    await page.getByRole('textbox', { name: 'Search' }).fill(`${consumer.firstName} ${consumer.lastName}`);
+    await page.getByRole('button', { name: 'Filter', exact: true }).click();
+    await page.waitForLoadState('networkidle');
+
+    // Provjeri da se transakcija pojavljuje
+    await expect(
+        page.getByRole('cell', { name: `${consumer.firstName} ${consumer.lastName}` }).first()
+    ).toBeVisible({ timeout: 10000 });
+
+
     console.log(`✓ Transaction added: ${transactionData.amount}€ for ${consumer.firstName} ${consumer.lastName}`);
   });
 

@@ -32,9 +32,9 @@ export default defineConfig({
     /* Collect trace when retrying the failed test. See https://playwright.dev/docs/trace-viewer */
     baseURL: process.env.CC_BASE_URL || 'https://dev-cc.dev.gerniks.net',
     trace: 'on-first-retry',
-    //launchOptions: {
-    //  slowMo: 1500,
-   // },
+    launchOptions: {
+     slowMo: 1500,
+    },
   },
 
   /* Configure projects for major browsers */
